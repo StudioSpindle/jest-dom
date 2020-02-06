@@ -168,4 +168,157 @@ describe('.toHaveStyle', () => {
       whatever: 'anything',
     })
   })
+
+  test('handles both with and without semicolon', () => {
+    const {container} = render(`
+      <div class="label" style="background-color: blue; height: 100%">
+        Hello World
+      </div>
+    `)
+
+    expect(container.querySelector('.label')).toHaveStyle('background-color: blue')
+    expect(container.querySelector('.label')).toHaveStyle('background-color: blue;')
+    expect(container.querySelector('.label')).toHaveStyle('height: 100%')
+    expect(container.querySelector('.label')).toHaveStyle('height: 100%;')
+  });
+
+  test('handles shorthand property definitions', () => {
+    const {container} = render(`
+      <div class="example-shorthand" style="
+        background: content-box radial-gradient(crimson, skyblue);
+        border-bottom: thick double #32a1ce;
+        transition: opacity 0.2s ease-out, top 0.3s cubic-bezier(1.175, 0.885, 0.32, 1.275);
+      ">
+        Hello World
+      </div>
+    `)
+
+    const exampleShorthand = container.querySelector('.example-shorthand');
+
+    expect(exampleShorthand).toHaveStyle(
+      `
+        background: content-box radial-gradient(crimson, skyblue);
+        border-bottom: thick double #32a1ce;
+        transition: opacity 0.2s ease-out, top 0.3s cubic-bezier(1.175, 0.885, 0.32, 1.275);
+      `
+    )
+
+    expect(() =>
+      expect(exampleShorthand).toHaveStyle(
+        `
+          background-clip: content-box;
+          background-color: radial-gradient(crimson, skyblue);
+        `
+      )
+    ).toThrowError()
+
+    // Note: border-bottom seems to be an exception and does not throw an error
+    //       when compared as longhand to a shorthand definition
+    expect(exampleShorthand).toHaveStyle(
+      `
+        border-bottom-width: thick;
+        border-bottom-style: double;
+        border-bottom-color: #32a1ce;
+      `
+    )
+
+    expect(() =>
+      expect(exampleShorthand).toHaveStyle(
+        'transition-duration: 0.2s;'
+      )
+    ).toThrowError()
+  })
+
+  test('handles longhand property definitions', () => {
+    const {container} = render(`
+      <div class="example-longhand">
+        Hello World
+      </div>
+    `)
+
+    const style = document.createElement('style')
+    style.innerHTML =`
+      .example-longhand {
+        background-clip: content-box;
+        background-color: 'radial-gradient(crimson, skyblue)';
+        border-bottom-width: thick;
+        border-bottom-style: double;
+        border-bottom-color: #32a1ce;
+        transition-property: opacity, top;
+        transition-duration: 0.2s, 0.3s;
+        transition-timing-function: ease-out, cubic-bezier(1.175, 0.885, 0.32, 1.275);
+        transition-delay: 0.2s, 0.3s;
+      }
+    `
+
+    document.body.appendChild(style)
+    document.body.appendChild(container)
+
+    const exampleLonghand = container.querySelector('.example-longhand');
+
+    expect(exampleLonghand).toHaveStyle(`
+      background-clip: content-box;
+      background-color: 'radial-gradient(crimson, skyblue)';
+      border-bottom-width: thick;
+      border-bottom-style: double;
+      border-bottom-color: #32a1ce;
+      transition-property: opacity, top;
+      transition-duration: 0.2s, 0.3s;
+      transition-timing-function: ease-out, cubic-bezier(1.175, 0.885, 0.32, 1.275);
+      transition-delay: 0.2s, 0.3s;
+    `);
+
+    expect(exampleLonghand).toHaveStyle(
+        'background: content-box radial-gradient(crimson, skyblue);'
+    )
+
+    // Note: border-bottom does throw an error when comparing the longhand
+    //       version to the shorthand version
+    expect(() =>
+      expect(exampleLonghand).toHaveStyle(
+          'border-bottom: thick double #32a1ce;'
+      )
+    ).toThrowError()
+
+    expect(() =>
+      expect(exampleLonghand).toHaveStyle(
+        'transition: opacity 0.2s ease-out, top 0.3s cubic-bezier(1.175, 0.885, 0.32, 1.275);'
+      )
+    ).toThrowError()
+  });
+
+  test('handles compound statements', () => {
+    const {container} = render(`
+      <div class="example-shorthand-multiple" style="
+        transition: opacity 0.2s ease-out, top 0.3s cubic-bezier(1.175, 0.885, 0.32, 1.275);
+      ">
+        Hello World
+      </div>
+    `)
+
+    expect(() =>
+      expect(container.querySelector('.example-shorthand-multiple')).toHaveStyle(
+      `transition-property: opacity;`
+      )
+    ).toThrowError()
+
+    expect(() =>
+        expect(container.querySelector('.example-shorthand-multiple')).toHaveStyle(
+            `transition-property: top;`
+        )
+    ).toThrowError()
+
+    expect(() =>
+      expect(container.querySelector('.example-shorthand-multiple')).toHaveStyle(
+  `
+          transition-property: opacity;
+          transition-duration: 0.2s;
+          transition-timing-function: ease-out;
+          transition-property: top;
+          transition-duration: 0.3s;
+          transition-timing-function: cubic-bezier(1.175, 0.885, 0.32, 1.275);
+        `
+      )
+    ).toThrowError()
+  })
 })

@@ -198,6 +198,128 @@ function parseJStoCSS(document, css) {
   return sandboxElement.style.cssText
 }
 
+function propIsShorthand(propToParse) {
+  const shorthandProperties = [
+    "animation",
+    // -duration | -timing-function | -delay | -iteration-count | -direction |
+    // -fill-mode | -play-state | -name
+
+    "background",
+    // -image | -position | -size | -repeat | -origin | -clip | -attachment | -color
+
+    //
+    // Note: 'border(-*)' property names don't always concatenate longhand property specifications
+    //
+
+    "border",
+    // -width | -style | -color
+
+    "border-bottom",
+    // -width | -style | -color
+
+    "border-color",
+    // border-top-color | border-right-color | border-bottom-color | border-left-color
+
+    "border-left",
+    // -width | -style | -color
+
+    "border-radius",
+    // border-top-left-radius | border-top-right-radius | border-bottom-right-radius |
+    // border-bottom-left-radius
+
+    "border-right",
+    // -width | -style | -color
+
+    "border-style",
+    // border-top-style | border-right-style | border-bottom-style | bottom-left-style
+
+    "border-top",
+    // -width | -style | -color
+
+    "border-width",
+    // border-top-width | border-right-width | border-bottom-width | border-left-width
+    // border-block-start-width | border-block-end-width | border-inline-start-width |
+    // border-inline-end-width
+
+    "column-rule",
+    // -width | -style | -color
+
+    "columns",
+    // -width | -count
+
+    "flex",
+    // -grow | -shrink | -basis
+
+    "flex-flow",
+    // -directon | -wrap
+
+    "font",
+    // -style | -variant | -weight | -stretch | -size | -height | -family
+
+    "grid",
+    // -template-rows | -template-columns | -template-areas | -auto-rows |
+    // -auto-columns | -auto-flow | -column-gap | row-gap | gap
+
+    //
+    // Note: 'grid-area' has a different pattern for longhand properties
+    //
+
+    "grid-area",
+    // grid-row-start | grid-column-start | grid-row-end | grid-column-end
+
+    "grid-column",
+    // -start | -end
+
+    "grid-row",
+    // -start | -end
+
+    "grid-template",
+    // -columns | -rows | -areas
+
+    "list-style",
+    // -type | -position | -image
+
+    "margin",
+    // -top | -right | -bottom | -left
+
+    "offset",
+    // -position | -path | -distance | -rotate | -anchor
+
+    "outline",
+    // -style | -width | -color
+
+    "overflow",
+    // -x | -y
+
+    "padding",
+    // -top | -right | -bottom | -left
+
+    //
+    // note: 'place-*' shorthand properties are entirely different from the longhand properties
+    //
+
+    "place-content",
+    // align-content | justify-content
+
+    "place-items",
+    // align-items | justify-items
+
+    "place-self",
+    // align-self | justify-self
+
+    "text-decoration",
+    // -line | -color | -style | -thickness
+
+    "transition",
+    // -property | -duration | -timing-function | -delay
+  ]
+
+  return shorthandProperties.some((prop) => {
+    const containsShorthand = new RegExp(`^${prop}$`)
+    return containsShorthand.test(propToParse)
+  })
+}
+
 export {
   HtmlElementTypeError,
   checkHtmlElement,
@@ -210,4 +332,5 @@ export {
   getSingleElementValue,
   compareArraysAsSet,
   parseJStoCSS,
+  propIsShorthand,
 }

@@ -3,6 +3,7 @@ import {
   checkHtmlElement,
   HtmlElementTypeError,
   parseJStoCSS,
+  propIsShorthand,
 } from '../utils'
 import document from './helpers/document'
 
@@ -113,6 +114,68 @@ describe('parseJStoCSS', () => {
           whatever: 'anything',
         }),
       ).toBe('')
+    })
+  })
+})
+
+describe('propIsShorthand', () => {
+  describe('when a regular shorthand to longhand property is provided', () => {
+    it('returns true for a shorthand property', () => {
+      expect(
+          propIsShorthand("background")
+      ).toBe(true)
+    })
+    it('returns false for a longhand property', () => {
+      expect(
+          propIsShorthand("background-position")
+      ).toBe(false)
+    })
+    it('returns true for a shorthand property that get\'s concatenated irregular', () => {
+      expect(
+          propIsShorthand("border")
+      ).toBe(true)
+      expect(
+          propIsShorthand("border-top-color")
+      ).toBe(false)
+      expect(
+          propIsShorthand("grid-area")
+      ).toBe(true)
+      expect(
+          propIsShorthand("grid-row-start")
+      ).toBe(false)
+    })
+  })
+  describe('when exceptions are provided', () => {
+    describe('the shorthand \'place-content\'', () => {
+      it('returns true for shorthand', () => {
+        expect(
+            propIsShorthand("place-content")
+        ).toBe(true)
+      })
+      it('returns false longhand prop', () => {
+        expect(
+            propIsShorthand("align-content")
+        ).toBe(false)
+        expect(
+            propIsShorthand("justify-content")
+        ).toBe(false)
+      })
+    })
+
+    describe('the shorthand \'place-items\'', () => {
+      it('returns true for shorthand', () => {
+        expect(
+            propIsShorthand("place-items")
+        ).toBe(true)
+      })
+      it('returns false longhand props', () => {
+        expect(
+            propIsShorthand("align-content")
+        ).toBe(false)
+        expect(
+            propIsShorthand("justify-items")
+        ).toBe(false)
+      })
     })
   })
 })

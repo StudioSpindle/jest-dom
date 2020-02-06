@@ -1,7 +1,7 @@
 import {matcherHint} from 'jest-matcher-utils'
 import jestDiff from 'jest-diff'
 import chalk from 'chalk'
-import {checkHtmlElement, parseCSS, parseJStoCSS} from './utils'
+import {checkHtmlElement, parseCSS, parseJStoCSS, propIsShorthand} from './utils'
 
 function getStyleDeclaration(document, css) {
   const styles = {}
@@ -20,8 +20,9 @@ function isSubset(styles, computedStyle) {
   return (
     !!Object.keys(styles).length &&
     Object.entries(styles).every(
-      ([prop, value]) =>
-        computedStyle.getPropertyValue(prop.toLowerCase()) === value,
+      ([prop, value]) => {
+        return !!computedStyle.getPropertyValue(prop.toLowerCase()) === value
+      }
     )
   )
 }
@@ -63,15 +64,18 @@ export function toHaveStyle(htmlElement, css) {
 
   const expected = getStyleDeclaration(htmlElement.ownerDocument, parsedCSS)
   const received = getComputedStyle(htmlElement)
+  const propToParse = Object.keys(expected)[0]
 
   return {
     pass: isSubset(expected, received),
-    message: () => {
-      const matcher = `${this.isNot ? '.not' : ''}.toHaveStyle`
-      return [
-        matcherHint(matcher, 'element', ''),
-        expectedDiff(expected, received),
-      ].join('\n\n')
-    },
+    message: propIsShorthand(propToParse)
+      ? () => chalk.red(`Matching shorthand CSS properties is not supported. Error occurred for property '${propToParse}'.`)
+      : () => {
+        const matcher = `${this.isNot ? '.not' : ''}.toHaveStyle`
+        return [
+          matcherHint(matcher, 'element', ''),
+          expectedDiff(expected, received),
+        ].join('\n\n')
+      }
   }
 }

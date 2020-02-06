@@ -686,6 +686,70 @@ This also works with rules that are applied to the element via a class name for
 which some rules are defined in a stylesheet currently active in the document.
 The usual rules of css precedence apply.
 
+#### Longhand vs Shorthand properties
+
+CSS [Shorthand properties](https://developer.mozilla.org/en-US/docs/Web/CSS/Shorthand_properties) 
+allow you to set values of multiple other CSS properties simultaneously.
+
+To use shorthand or longhand properties in conjunction with `toHaveStyle` always compare the exact
+style declaration. Meaning shorthand with shorthand and longhand with longhand.
+
+Examples
+
+```html
+<div
+  data-testid="transition-shorthand"
+  style="transition: opacity 0.2s ease-out, top 0.3s cubic-bezier(1.175, 0.885, 0.32, 1.275);"
+></div>
+<div
+  data-testid="transition-longhand"
+  style="
+    transition-property: opacity, top;
+    transition-duration: 0.2s, 0.3s;
+    transition-timing-function: ease-out, cubic-bezier(1.175, 0.885, 0.32, 1.275);
+    transition-delay: 0.2s, 0.3s;
+  "
+></div>
+```
+
+```javascript
+// works:
+expect(getByTestId('transition-shorthand')).toHaveStyle(`
+  transition: opacity 0.2s ease-out, top 0.3s cubic-bezier(1.175, 0.885, 0.32, 1.275)
+`);
+
+// works:
+expect(getByTestId('transition-longhand')).toHaveStyle(`
+  transition-property: opacity, top;
+  transition-duration: 0.2s, 0.3s;
+  transition-timing-function: ease-out, cubic-bezier(1.175, 0.885, 0.32, 1.275);
+  transition-delay: 0.2s, 0.3s;
+`)
+
+// doesn't work, should be shorthand:
+expect(getByTestId('transition-shorthand')).toHaveStyle(`
+  transition-property: opacity, top;
+  transition-duration: 0.2s, 0.3s;
+  transition-timing-function: ease-out, cubic-bezier(1.175, 0.885, 0.32, 1.275);
+  transition-delay: 0.2s, 0.3s;
+`)
+
+// doesn't work, should be longhand:
+expect(getByTestId('transition-longhand')).toHaveStyle(`
+  transition: opacity 0.2s ease-out, top 0.3s cubic-bezier(1.175, 0.885, 0.32, 1.275)
+`);
+
+// doesn't work, should have multiple properties applied
+expect(getByTestId('transition-shorthand')).toHaveStyle(`
+  transition-property: opacity;
+  transition-duration: 0.2s;
+  transition-timing-function: ease-out;
+  transition-delay: 0.2s;
+`)
+```
+
+> Note: Follow [issue 68](https://github.com/testing-library/jest-dom/issues/68) for possible shorthand/longhand support in the future.
+
 <hr />
 
 ### `toHaveTextContent`
